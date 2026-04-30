@@ -88,9 +88,9 @@ body.book-focus-mode main.content {
 }
 </style>
 
-<button id="book-focus-toggle" aria-label="Modo foco" type="button">
+<button id="book-focus-toggle" aria-label="Focus Mode" type="button">
   <span id="book-focus-icon" aria-hidden="true">⛶</span>
-  <span id="book-focus-label">Modo foco</span>
+  <span id="book-focus-label">Focus Mode</span>
 </button>
 
 <script>
@@ -114,11 +114,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (enabled) {
       icon.textContent = "☰";
       label.textContent = "TOC";
-      button.setAttribute("aria-label", "Mostrar sumário");
+      button.setAttribute("aria-label", "Show TOC");
     } else {
       icon.textContent = "⛶";
-      label.textContent = "Modo foco";
-      button.setAttribute("aria-label", "Modo foco");
+      label.textContent = "Focus Mode";
+      button.setAttribute("aria-label", "Focus Mode");
     }
 
     try {

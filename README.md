@@ -1,50 +1,35 @@
 # Quarto Book Focus Mode
 
-A small Quarto extension that adds a floating **Focus Mode** button to Quarto Book HTML outputs.
+A lightweight Quarto extension that adds a floating **Focus Mode** toggle button to Quarto Book HTML outputs.
 
-The button hides the left sidebar and page table of contents, recenters the main content, and can be toggled back to show the TOC/sidebar again.
+The button hides the left sidebar and page table of contents, recenters the main content for distraction-free reading, and can be toggled back to restore navigation. The selected mode is remembered across pages during navigation.
+
+Compatible with **Quarto ≥ 1.4**.
 
 ## Installation
 
-From a Quarto project:
+From within a Quarto project:
 
 ```bash
 quarto add lsbjordao/quarto-book-focus-mode
 ```
 
-For local testing:
-
-```bash
-quarto add ../quarto-book-focus-mode
-```
-
 ## Usage
 
-Add the filter to your `_quarto.yml`:
+After installation, the focus-mode toggle button is automatically enabled in **Quarto Book HTML output**.
 
-```yaml
-filters:
-  - book-focus-mode
-```
+No additional configuration is required.
 
-Or under HTML format:
+Click the button to switch between:
 
-```yaml
-format:
-  html:
-    filters:
-      - book-focus-mode
-```
+- **Focus mode** → hides sidebar and margin TOC
+- **TOC mode** → restores navigation panels
 
-Then render:
-
-```bash
-quarto render
-```
+The selected mode is preserved while browsing the book.
 
 ## Custom content width
 
-You can override the focused content width with CSS:
+You can adjust the reading width in focus mode by defining:
 
 ```css
 :root {
@@ -52,6 +37,20 @@ You can override the focused content width with CSS:
 }
 ```
 
-## Notes
+Add this rule to your project stylesheet.
 
-This extension is intended for Quarto Book HTML output. It hides itself on pages without the standard Quarto book sidebar.
+## Features
+
+- Floating toggle button
+- Responsive pill-style hover animation
+- Sidebar + margin TOC hide/show
+- Reading-optimized layout width
+- Local state persistence (per browser session)
+- Automatically activates only for Quarto Book layout
+- Zero configuration required
+
+## Compatibility
+
+This extension is designed specifically for **Quarto Book HTML output**.
+
+The button automatically hides itself on pages that do not use the Quarto Book sidebar structure.
