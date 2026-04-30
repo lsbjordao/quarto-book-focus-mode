@@ -16,9 +16,20 @@ quarto add lsbjordao/quarto-book-focus-mode
 
 ## Usage
 
-After installation, the focus-mode toggle button is automatically enabled in **Quarto Book HTML output**.
+Enable the extension by adding the filter to your `_quarto.yml`:
 
-No additional configuration is required.
+```yaml
+format:
+  html:
+    filters:
+      - book-focus-mode
+```
+
+Then render your project:
+
+```bash
+quarto render
+```
 
 Click the button to switch between:
 
@@ -47,7 +58,6 @@ Add this rule to your project stylesheet.
 - Reading-optimized layout width
 - Local state persistence (per browser session)
 - Automatically activates only for Quarto Book layout
-- Zero configuration required
 
 ## Compatibility
 
