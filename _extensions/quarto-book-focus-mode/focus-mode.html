@@ -438,6 +438,24 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    if (e.key === "ArrowRight") {
+      var nextPageButton = document.querySelector(".nav-page-next a");
+      if (nextPageButton) {
+        e.preventDefault();
+        nextPageButton.click();
+      }
+      return;
+    }
+
+    if (e.key === "ArrowLeft") {
+      var prevPageButton = document.querySelector(".nav-page-previous a");
+      if (prevPageButton) {
+        e.preventDefault();
+        prevPageButton.click();
+      }
+      return;
+    }
+
     if (!presActive || total === 0) return;
 
     if (e.key === "PageDown") {
