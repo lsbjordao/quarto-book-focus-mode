@@ -46,6 +46,8 @@ The selected mode is preserved while browsing the book.
 | `t` | Return to TOC (exit Focus Mode) |
 | `d` | Switch to Dark Mode             |
 | `l` | Switch to Light Mode            |
+| `ArrowRight` | Go to next chapter page   |
+| `ArrowLeft`  | Go to previous chapter page |
 
 > Dark/Light mode shortcuts require a dark theme configured in `_quarto.yml` (e.g. `theme: [flatly, darkly]`).
 
@@ -79,6 +81,7 @@ Add this rule to your project stylesheet.
 
 - Floating toggle button with hover animation
 - Keyboard shortcuts for Focus Mode (`f` / `t`), color scheme (`d` / `l`), and Presentation Mode (`p`)
+- Chapter page navigation via keyboard (`ArrowRight` / `ArrowLeft`)
 - Sidebar + margin TOC hide/show
 - Presentation Mode with per-section slide navigation (`PageDown` / `PageUp`)
 - Slide position indicator
