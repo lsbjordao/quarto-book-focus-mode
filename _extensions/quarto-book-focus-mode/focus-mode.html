@@ -115,6 +115,24 @@ body.book-presentation-mode .pres-current:not(.level1) > section[class*="level"]
   display: none !important;
 }
 
+/* ── Presentation progress bar (bottom, full width) ── */
+#book-pres-progress {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: var(--bs-primary, #0d6efd);
+  z-index: 10000;
+  display: none;
+  transition: width 0.35s ease;
+  pointer-events: none;
+}
+
+body.book-presentation-mode #book-pres-progress {
+  display: block;
+}
+
 /* ── Presentation indicator (bottom-right, visible only when active) ── */
 #book-pres-indicator {
   position: fixed;
@@ -152,6 +170,8 @@ body.book-presentation-mode #book-pres-indicator {
   <span id="book-focus-icon" aria-hidden="true">⛶</span>
   <span id="book-focus-label">Focus Mode</span>
 </button>
+
+<div id="book-pres-progress"></div>
 
 <div id="book-pres-indicator" aria-live="polite">
   <span id="book-pres-counter"></span>
@@ -240,6 +260,13 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   var total = slides.length + (hasPrelude ? 1 : 0);
+  var progressBar = document.getElementById("book-pres-progress");
+
+  function updateProgress(position) {
+    if (progressBar && total > 0) {
+      progressBar.style.width = (position / total * 100) + "%";
+    }
+  }
 
   function clearPresClasses() {
     document.body.classList.remove('pres-prelude');
@@ -253,6 +280,7 @@ document.addEventListener("DOMContentLoaded", function () {
     currentIdx = -1;
     document.body.classList.add('pres-prelude');
     counter.textContent = "1 / " + total;
+    updateProgress(1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -273,7 +301,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     var offset = hasPrelude ? 1 : 0;
-    counter.textContent = (idx + 1 + offset) + " / " + total;
+    var position = idx + 1 + offset;
+    counter.textContent = position + " / " + total;
+    updateProgress(position);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
