@@ -86,6 +86,12 @@ body.book-presentation-mode #quarto-document-content > *:not(#pres-slide-overlay
   display: none !important;
 }
 
+/* Ensure the cloned section inside the overlay is always visible,
+   overriding any inline style or Quarto rule that might hide it */
+#pres-slide-overlay > section {
+  display: block !important;
+}
+
 /* ── Presentation indicator (bottom-right, visible only when active) ── */
 #book-pres-indicator {
   position: fixed;
@@ -129,7 +135,6 @@ body.book-presentation-mode #book-pres-indicator {
 </button>
 
 <div id="book-pres-indicator" aria-live="polite">
-  <span id="book-pres-icon">▶</span>
   <span id="book-pres-counter"></span>
 </div>
 
@@ -207,6 +212,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Clone section and strip nested subsections so only direct content shows
     var clone = section.cloneNode(true);
+    // Clear any inline display style Quarto may have set on the original section
+    clone.style.removeProperty('display');
     var nested = clone.querySelectorAll('section[class*="level"]');
     for (var i = 0; i < nested.length; i++) nested[i].remove();
 
@@ -233,6 +240,18 @@ document.addEventListener("DOMContentLoaded", function () {
     var tag = document.activeElement ? document.activeElement.tagName : "";
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" ||
         (document.activeElement && document.activeElement.isContentEditable)) return;
+
+    if (e.key === "f" || e.key === "F") {
+      e.preventDefault();
+      setFocusMode(true);
+      return;
+    }
+
+    if (e.key === "t" || e.key === "T") {
+      e.preventDefault();
+      setFocusMode(false);
+      return;
+    }
 
     if (e.key === "p" || e.key === "P") {
       e.preventDefault();
