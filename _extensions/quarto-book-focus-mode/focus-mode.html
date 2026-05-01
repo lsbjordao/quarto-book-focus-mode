@@ -263,25 +263,50 @@ document.addEventListener("DOMContentLoaded", function () {
   var progressBar = document.getElementById("book-pres-progress");
 
   // Compute this chapter's position within the full book via the sidebar links
+  // while ignoring index.qmd in progress calculations.
   var chapterIdx = 0, totalChapters = 1;
+  var chapterProgressIdx = -1, totalProgressChapters = 0;
   (function () {
     var links  = document.querySelectorAll("#quarto-sidebar a[href]");
     var active = document.querySelector("#quarto-sidebar a.active, #quarto-sidebar a[aria-current]");
-    if (active && links.length > 0) {
-      for (var i = 0; i < links.length; i++) {
-        if (links[i] === active) { chapterIdx = i; break; }
-      }
+    if (links.length > 0) {
       totalChapters = links.length;
+
+      // Build chapter list excluding index pages from progress.
+      var progressLinks = [];
+      for (var i = 0; i < links.length; i++) {
+        var href = links[i].getAttribute("href") || "";
+        var cleanHref = href.split("#")[0].split("?")[0].toLowerCase();
+        if (cleanHref.endsWith("/index.html") || cleanHref.endsWith("index.html") ||
+            cleanHref.endsWith("/index.qmd") || cleanHref.endsWith("index.qmd")) {
+          continue;
+        }
+        progressLinks.push(links[i]);
+      }
+
+      totalProgressChapters = progressLinks.length;
+
+      if (active) {
+        for (var j = 0; j < links.length; j++) {
+          if (links[j] === active) { chapterIdx = j; break; }
+        }
+        for (var k = 0; k < progressLinks.length; k++) {
+          if (progressLinks[k] === active) { chapterProgressIdx = k; break; }
+        }
+      }
     }
   })();
 
   function updateProgress(position) {
     if (!progressBar || total === 0) return;
-    // Index (chapter 0) always shows 0%; remaining chapters fill 0–100%
-    if (chapterIdx === 0) { progressBar.style.width = "0%"; return; }
-    var effectiveIdx   = chapterIdx - 1;
-    var effectiveTotal = Math.max(1, totalChapters - 1);
-    var globalPct = (effectiveIdx / effectiveTotal) + (position / total / effectiveTotal);
+    // Index pages are excluded from progress. If current page is excluded,
+    // keep bar at 0 and start filling only from subsequent chapters.
+    if (chapterProgressIdx < 0 || totalProgressChapters === 0) {
+      progressBar.style.width = "0%";
+      return;
+    }
+    var effectiveTotal = Math.max(1, totalProgressChapters);
+    var globalPct = (chapterProgressIdx / effectiveTotal) + (position / total / effectiveTotal);
     progressBar.style.width = (globalPct * 100) + "%";
   }
 
