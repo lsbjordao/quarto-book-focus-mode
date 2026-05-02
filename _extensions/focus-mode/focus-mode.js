@@ -404,21 +404,46 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   /* ── TOC highlight sync for presentation mode ── */
+  // Quarto's scroll handler (quarto.js) calls updateActiveLink() on every scroll
+  // event and resets the active class based on offsetTop — which is unreliable in
+  // presentation mode (hidden sections collapse to offsetTop≈0). A MutationObserver
+  // guards the desired active state and immediately restores it whenever Quarto
+  // overwrites it. The needsUpdate check prevents infinite observer loops.
+  var tocGuard = null;
+
   function updateTocHighlight(sectionId) {
     var toc = document.getElementById("TOC");
+    if (tocGuard) { tocGuard.disconnect(); tocGuard = null; }
     if (!toc) return;
-    var links = toc.querySelectorAll("a");
+
+    var links = toc.querySelectorAll("a[data-scroll-target]");
+    var targetLink = null;
+
     for (var i = 0; i < links.length; i++) {
-      links[i].classList.remove("active");
-    }
-    if (!sectionId) return;
-    for (var i = 0; i < links.length; i++) {
-      if (links[i].getAttribute("href") === "#" + sectionId) {
-        links[i].classList.add("active");
+      var isTarget = !!sectionId && links[i].getAttribute("href") === "#" + sectionId;
+      links[i].classList.toggle("active", isTarget);
+      if (isTarget) {
+        targetLink = links[i];
         links[i].scrollIntoView({ block: "nearest", behavior: "smooth" });
-        break;
       }
     }
+
+    if (!sectionId || !presActive || !targetLink) return;
+
+    tocGuard = new MutationObserver(function () {
+      if (!presActive) return;
+      var needsUpdate = false;
+      for (var i = 0; i < links.length; i++) {
+        if (links[i].classList.contains("active") !== (links[i] === targetLink)) {
+          needsUpdate = true; break;
+        }
+      }
+      if (!needsUpdate) return;
+      for (var i = 0; i < links.length; i++) {
+        links[i].classList.toggle("active", links[i] === targetLink);
+      }
+    });
+    tocGuard.observe(toc, { attributes: true, attributeFilter: ["class"], subtree: true });
   }
 
   function showPrelude() {

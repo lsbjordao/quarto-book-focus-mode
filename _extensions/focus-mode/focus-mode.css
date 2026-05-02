@@ -56,10 +56,11 @@
   opacity: 1;
 }
 
-/* ── Focus mode: hide Quarto book navigation ── */
+/* ── Focus mode: hide navigation panels ── */
 body.book-focus-mode #quarto-sidebar,
 body.book-focus-mode #quarto-margin-sidebar,
-body.book-focus-mode nav#TOC {
+body.book-focus-mode nav#TOC,
+body.book-focus-mode #quarto-header {
   display: none !important;
 }
 
