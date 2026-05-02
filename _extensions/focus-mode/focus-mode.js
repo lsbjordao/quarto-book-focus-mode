@@ -170,49 +170,22 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   })();
 
-  // Cache slide counts per page so each slide has equal global weight
-  var slideCountKey = "quarto-book-pres-slide-counts-v2";
-  var savedCounts = {};
-  try { savedCounts = JSON.parse(localStorage.getItem(slideCountKey) || "{}"); } catch (e) {}
-  if (total > 0) {
-    // Index: prelude maps to 0% (not 1/grandTotal), so store slides.length to keep indexSlides aligned.
-    savedCounts[currentIsIndex ? "__index__" : currentPath] = currentIsIndex ? slides.length : total;
-    try { localStorage.setItem(slideCountKey, JSON.stringify(savedCounts)); } catch (e) {}
-  }
-
+  // Each chapter gets equal weight on the progress bar, regardless of slide count
   function updateProgress(position) {
     if (!progressBar || total === 0 || totalProgressChapters === 0) return;
 
-    // Estimate slides per chapter; fall back to current page count for unknowns
-    var knownSum = 0, knownCount = 0;
-    for (var pi = 0; pi < progressLinks.length; pi++) {
-      var pPath = pathFromHref(progressLinks[pi].getAttribute("href") || "");
-      if (savedCounts[pPath]) { knownSum += savedCounts[pPath]; knownCount++; }
-    }
-    var avgSlides = knownCount > 0 ? knownSum / knownCount : total;
-
-    var indexSlides = savedCounts["__index__"] || (currentIsIndex ? total : avgSlides);
-    var chapterSlidesTotal = 0;
-    for (var pi = 0; pi < progressLinks.length; pi++) {
-      var pPath = pathFromHref(progressLinks[pi].getAttribute("href") || "");
-      chapterSlidesTotal += savedCounts[pPath] || avgSlides;
-    }
-    var grandTotal = indexSlides + chapterSlidesTotal;
-
     var globalPct;
     if (currentIsIndex) {
-      // Prelude (position=1) → 0%; first section → 1/grandTotal regardless of whether prelude exists.
-      globalPct = Math.max(0, position - (hasPrelude ? 1 : 0)) / grandTotal;
+      globalPct = 0;
     } else if (chapterProgressIdx < 0) {
       progressBar.style.width = "0%";
       return;
     } else {
-      var slidesBefore = indexSlides;
-      for (var pi = 0; pi < chapterProgressIdx; pi++) {
-        var pPath = pathFromHref(progressLinks[pi].getAttribute("href") || "");
-        slidesBefore += savedCounts[pPath] || avgSlides;
-      }
-      globalPct = (slidesBefore + position) / grandTotal;
+      var chapterWidth = 1 / totalProgressChapters;
+      var intraChapterProgress = hasPrelude
+        ? Math.max(0, (position - 1) / slides.length)
+        : position / total;
+      globalPct = chapterProgressIdx * chapterWidth + intraChapterProgress * chapterWidth;
     }
     progressBar.style.width = (Math.min(globalPct, 1) * 100) + "%";
   }
