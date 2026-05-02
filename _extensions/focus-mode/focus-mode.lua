@@ -37,6 +37,9 @@ function Meta(meta)
     if (window.localStorage.getItem("quarto-focus-mode") === "1") {
       document.documentElement.classList.add("focus-mode-persisted");
     }
+    if (window.localStorage.getItem("quarto-presentation-mode") === "1") {
+      document.documentElement.classList.add("presentation-mode-persisted");
+    }
   } catch (e) {}
 })();
 </script>]])

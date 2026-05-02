@@ -45,6 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
   /* ── Desktop-only guard ── */
   if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
     document.documentElement.classList.remove("focus-mode-persisted");
+    document.documentElement.classList.remove("presentation-mode-persisted");
     document.body.classList.remove("focus-mode");
     button.style.display = "none";
     return;
@@ -54,6 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var hasSidebar = document.querySelector("#quarto-sidebar") !== null;
   if (!hasSidebar) {
     document.documentElement.classList.remove("focus-mode-persisted");
+    document.documentElement.classList.remove("presentation-mode-persisted");
     document.body.classList.remove("focus-mode");
     button.style.display = "none";
     return;
@@ -501,6 +503,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (enabled && total === 0) return;
     presActive = enabled;
     document.body.classList.toggle("presentation-mode", enabled);
+    document.documentElement.classList.toggle("presentation-mode-persisted", enabled);
     if (enabled) {
       if (hasPrelude) { showPrelude(); } else { showSlide(0); }
     } else {

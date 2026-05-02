@@ -80,6 +80,11 @@ html.focus-mode-persisted main.content {
   margin-right: auto !important;
 }
 
+/* Prevent initial flash of non-active sections while presentation state is restored. */
+html.presentation-mode-persisted #quarto-document-content {
+  visibility: hidden;
+}
+
 /* Reading comfort */
 #quarto-document-content {
   line-height: 1.65;
