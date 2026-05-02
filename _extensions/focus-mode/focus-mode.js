@@ -242,8 +242,31 @@ document.addEventListener("DOMContentLoaded", function () {
   // On page load with hash (cross-page link)
   jumpToHash();
 
-  // On same-page hash change (in-page anchor link)
-  window.addEventListener("hashchange", jumpToHash);
+  // On same-page anchor click — handles repeated clicks on the same hash too
+  document.addEventListener("click", function (e) {
+    if (!presActive) return;
+    var anchor = e.target.closest("a[href]");
+    if (!anchor) return;
+    var href = anchor.getAttribute("href") || "";
+    if (!href.startsWith("#")) return;
+    var targetId = href.slice(1);
+    var targetEl = document.getElementById(targetId);
+    if (!targetEl) return;
+    var targetIdx = -1;
+    for (var si = 0; si < slides.length; si++) {
+      if (slides[si] === targetEl) { targetIdx = si; break; }
+    }
+    if (targetIdx < 0) {
+      for (var si = slides.length - 1; si >= 0; si--) {
+        if (slides[si].contains(targetEl)) { targetIdx = si; break; }
+      }
+    }
+    if (targetIdx >= 0) {
+      e.preventDefault();
+      history.pushState(null, "", href);
+      showSlide(targetIdx);
+    }
+  });
 
   document.addEventListener("keydown", function (e) {
     var tag = document.activeElement ? document.activeElement.tagName : "";
