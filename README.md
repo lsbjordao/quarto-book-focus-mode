@@ -88,7 +88,7 @@ You can adjust the reading width in focus mode by defining:
 
 ```css
 :root {
-  --book-focus-content-width: 960px;
+  --focus-content-width: 960px;
 }
 ```
 
