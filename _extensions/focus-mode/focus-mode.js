@@ -108,88 +108,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var total = slides.length + (hasPrelude ? 1 : 0);
 
-  // Compute this chapter's position within the full book via the sidebar links
-  // while ignoring index/opening pages in progress calculations.
-  var chapterProgressIdx = -1, totalProgressChapters = 0;
-  var progressLinks = [];
-
-  function normalizePath(path) {
-    if (!path) return "/";
-    path = String(path).trim().toLowerCase();
-    if (path === "") return "/";
-    if (path !== "/") path = path.replace(/\/+$/, "");
-    return path || "/";
-  }
-
-  function pathFromHref(href) {
-    try {
-      return normalizePath(new URL(href, window.location.href).pathname || "/");
-    } catch (e) {
-      return normalizePath((href || "").split("#")[0].split("?")[0]);
-    }
-  }
-
-  function isIndexPath(path) {
-    path = String(path || "").trim().toLowerCase();
-    if (path === "/" || path.endsWith("/")) return true;
-    path = normalizePath(path);
-    return path === "/index" ||
-      path === "/index.html" ||
-      path === "/index.qmd" ||
-      path.endsWith("/index") ||
-      path.endsWith("/index.html") ||
-      path.endsWith("/index.qmd");
-  }
-
-  var currentPath = normalizePath(window.location.pathname || "/");
-  var currentIsIndex = isIndexPath(window.location.pathname || "/");
-
-  (function () {
-    var links  = document.querySelectorAll("#quarto-sidebar a[href]");
-    var active = document.querySelector("#quarto-sidebar a.active, #quarto-sidebar a[aria-current]");
-    if (links.length > 0) {
-      for (var i = 0; i < links.length; i++) {
-        var href = links[i].getAttribute("href") || "";
-        if (isIndexPath(pathFromHref(href))) continue;
-        progressLinks.push(links[i]);
-      }
-      totalProgressChapters = progressLinks.length;
-
-      if (active) {
-        for (var k = 0; k < progressLinks.length; k++) {
-          if (progressLinks[k] === active) { chapterProgressIdx = k; break; }
-        }
-      }
-      if (chapterProgressIdx < 0) {
-        for (var m = 0; m < progressLinks.length; m++) {
-          var pHref = progressLinks[m].getAttribute("href") || "";
-          if (pathFromHref(pHref) === currentPath) { chapterProgressIdx = m; break; }
-        }
-      }
-      if (currentIsIndex) chapterProgressIdx = -1;
-    }
-  })();
-
-  // Index + each chapter get equal weight; prelude always maps to 0 within its page
+  // Prelude is 0%; each section/subsection advances by one equal step.
+  // This guarantees the last slide reaches 100%.
   function updateProgress(position) {
-    if (!progressBar || total === 0 || totalProgressChapters === 0) return;
+    if (!progressBar) return;
 
-    var slots = totalProgressChapters + 1; // index occupies slot 0, chapters slots 1..N
-    var slotWidth = 1 / slots;
-    var intraProgress = hasPrelude
-      ? (slides.length > 0 ? Math.max(0, (position - 1) / slides.length) : 0)
-      : position / total;
-
-    var globalPct;
-    if (currentIsIndex) {
-      globalPct = intraProgress * slotWidth;
-    } else if (chapterProgressIdx < 0) {
+    var steps = slides.length;
+    if (steps <= 0) {
       progressBar.style.width = "0%";
       return;
-    } else {
-      globalPct = (chapterProgressIdx + 1) * slotWidth + intraProgress * slotWidth;
     }
-    progressBar.style.width = (Math.min(globalPct, 1) * 100) + "%";
+
+    var clamped = Math.max(0, Math.min(position, steps));
+    progressBar.style.width = ((clamped / steps) * 100) + "%";
   }
 
   function clearPresClasses() {
@@ -203,8 +134,8 @@ document.addEventListener("DOMContentLoaded", function () {
     clearPresClasses();
     currentIdx = -1;
     document.body.classList.add('pres-prelude');
-    counter.textContent = "1 / " + total;
-    updateProgress(1);
+    counter.textContent = "0 / " + slides.length;
+    updateProgress(0);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -224,9 +155,8 @@ document.addEventListener("DOMContentLoaded", function () {
       parent = parent.parentElement;
     }
 
-    var offset = hasPrelude ? 1 : 0;
-    var position = idx + 1 + offset;
-    counter.textContent = position + " / " + total;
+    var position = idx + 1;
+    counter.textContent = position + " / " + (hasPrelude ? slides.length : total);
     updateProgress(position);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
