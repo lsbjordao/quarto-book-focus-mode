@@ -108,10 +108,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var total = slides.length + (hasPrelude ? 1 : 0);
 
-  var globalTotalSteps = slides.length;
-  var globalOffsetSteps = 0;
-  var globalProgressReady = false;
-  var localToGlobalSteps = [];
+  // Compute this chapter's position in the book via sidebar links
+  var chapterProgressIdx = -1, totalProgressChapters = 0;
+  var progressLinks = [];
 
   function normalizePath(path) {
     if (!path) return "/";
@@ -142,134 +141,56 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   var currentPath = normalizePath(window.location.pathname || "/");
+  var currentIsIndex = isIndexPath(window.location.pathname || "/");
 
-  function hashFromHref(href) {
-    try {
-      return (new URL(href, window.location.href).hash || "").replace(/^#/, "").trim().toLowerCase();
-    } catch (e) {
-      var idx = String(href || "").indexOf("#");
-      if (idx < 0) return "";
-      return String(href).slice(idx + 1).trim().toLowerCase();
-    }
-  }
-
-  function unitKey(path, hash) {
-    return normalizePath(path) + "#" + String(hash || "").trim().toLowerCase();
-  }
-
-  function getLocalProgressPosition() {
-    if (slides.length <= 0) return 0;
-    if (hasPrelude && currentIdx === -1) return 0;
-    if (currentIdx < 0) return 0;
-    return currentIdx + 1;
-  }
-
-  // Prelude is 0%; each section/subsection advances by one equal step globally.
-  function updateProgress(position) {
-    if (!progressBar) return;
-
-    var localSteps = slides.length;
-    if (localSteps <= 0) {
-      progressBar.style.width = "0%";
-      return;
-    }
-
-    var localPos = Math.max(0, Math.min(position, localSteps));
-    var absolutePos = localPos;
-    var totalSteps = localSteps;
-
-    if (globalProgressReady && globalTotalSteps > 0) {
-      if (localPos <= 0) {
-        absolutePos = globalOffsetSteps;
-      } else {
-        var localIdx = localPos - 1;
-        var mapped = localToGlobalSteps[localIdx] || (globalOffsetSteps + localPos);
-        absolutePos = Math.max(0, Math.min(mapped, globalTotalSteps));
+  (function () {
+    var links  = document.querySelectorAll("#quarto-sidebar a[href]");
+    var active = document.querySelector("#quarto-sidebar a.active, #quarto-sidebar a[aria-current]");
+    if (links.length > 0) {
+      for (var i = 0; i < links.length; i++) {
+        var href = links[i].getAttribute("href") || "";
+        if (isIndexPath(pathFromHref(href))) continue;
+        progressLinks.push(links[i]);
       }
-      totalSteps = globalTotalSteps;
-    }
+      totalProgressChapters = progressLinks.length;
 
-    progressBar.style.width = ((absolutePos / totalSteps) * 100) + "%";
-  }
-
-  function refreshProgressFromState() {
-    updateProgress(getLocalProgressPosition());
-  }
-
-  (function computeGlobalProgressStepsFromSidebar() {
-    var links = document.querySelectorAll("#quarto-sidebar a[href]");
-    if (!links || links.length === 0) return;
-
-    var globalUnits = [];
-    var seen = {};
-    for (var i = 0; i < links.length; i++) {
-      var href = links[i].getAttribute("href") || "";
-      var path = pathFromHref(href);
-      if (!path || isIndexPath(path)) continue;
-      var hash = hashFromHref(href);
-      var key = unitKey(path, hash);
-      if (seen[key]) continue;
-      seen[key] = true;
-      globalUnits.push({ key: key, path: path, hash: hash });
-    }
-    if (globalUnits.length === 0) return;
-
-    var indexByKey = {};
-    for (var g = 0; g < globalUnits.length; g++) {
-      indexByKey[globalUnits[g].key] = g + 1;
-    }
-
-    var chapterStart = indexByKey[unitKey(currentPath, "")] || 0;
-    var mapped = new Array(slides.length);
-    for (var s = 0; s < slides.length; s++) {
-      var slide = slides[s];
-      var candidates = [];
-
-      if (s === 0) candidates.push(unitKey(currentPath, ""));
-
-      var sid = (slide.id || "").trim().toLowerCase();
-      if (sid) candidates.push(unitKey(currentPath, sid));
-
-      var heading = slide.querySelector("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]");
-      var hid = heading && heading.id ? String(heading.id).trim().toLowerCase() : "";
-      if (hid) candidates.push(unitKey(currentPath, hid));
-
-      var found = 0;
-      for (var c = 0; c < candidates.length; c++) {
-        if (indexByKey[candidates[c]]) {
-          found = indexByKey[candidates[c]];
-          break;
+      if (active) {
+        for (var k = 0; k < progressLinks.length; k++) {
+          if (progressLinks[k] === active) { chapterProgressIdx = k; break; }
         }
       }
-      mapped[s] = found;
-    }
-
-    var firstKnown = -1;
-    for (var mk = 0; mk < mapped.length; mk++) {
-      if (mapped[mk] > 0) { firstKnown = mk; break; }
-    }
-
-    if (firstKnown >= 0) {
-      for (var b = firstKnown - 1; b >= 0; b--) {
-        mapped[b] = Math.max(1, mapped[b + 1] - 1);
+      if (chapterProgressIdx < 0) {
+        for (var m = 0; m < progressLinks.length; m++) {
+          var pHref = progressLinks[m].getAttribute("href") || "";
+          if (pathFromHref(pHref) === currentPath) { chapterProgressIdx = m; break; }
+        }
       }
-      for (var f = firstKnown + 1; f < mapped.length; f++) {
-        if (mapped[f] <= 0) mapped[f] = Math.min(globalUnits.length, mapped[f - 1] + 1);
-      }
-    } else if (chapterStart > 0) {
-      for (var cs = 0; cs < mapped.length; cs++) {
-        mapped[cs] = Math.min(globalUnits.length, chapterStart + cs);
-      }
-    } else {
-      return;
+      if (currentIsIndex) chapterProgressIdx = -1;
     }
-
-    globalTotalSteps = globalUnits.length;
-    localToGlobalSteps = mapped;
-    globalOffsetSteps = mapped.length > 0 ? Math.max(0, mapped[0] - 1) : Math.max(0, chapterStart - 1);
-    globalProgressReady = true;
-    refreshProgressFromState();
   })();
+
+  // Index + each chapter get equal weight on the progress bar.
+  // position: 1 = prelude (or first slide when no prelude), up to total.
+  function updateProgress(position) {
+    if (!progressBar || total === 0 || totalProgressChapters === 0) return;
+
+    var slots = totalProgressChapters + 1; // index = slot 0, chapters = slots 1..N
+    var slotWidth = 1 / slots;
+    var intraProgress = hasPrelude
+      ? (slides.length > 0 ? Math.max(0, (position - 1) / slides.length) : 0)
+      : position / total;
+
+    var globalPct;
+    if (currentIsIndex) {
+      globalPct = intraProgress * slotWidth;
+    } else if (chapterProgressIdx < 0) {
+      progressBar.style.width = "0%";
+      return;
+    } else {
+      globalPct = (chapterProgressIdx + 1) * slotWidth + intraProgress * slotWidth;
+    }
+    progressBar.style.width = (Math.min(globalPct, 1) * 100) + "%";
+  }
 
   function clearPresClasses() {
     document.body.classList.remove('pres-prelude');
@@ -282,8 +203,8 @@ document.addEventListener("DOMContentLoaded", function () {
     clearPresClasses();
     currentIdx = -1;
     document.body.classList.add('pres-prelude');
-    counter.textContent = "0 / " + slides.length;
-    updateProgress(0);
+    counter.textContent = "1 / " + total;
+    updateProgress(1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -303,8 +224,9 @@ document.addEventListener("DOMContentLoaded", function () {
       parent = parent.parentElement;
     }
 
-    var position = idx + 1;
-    counter.textContent = position + " / " + (hasPrelude ? slides.length : total);
+    var offset = hasPrelude ? 1 : 0;
+    var position = idx + 1 + offset;
+    counter.textContent = position + " / " + total;
     updateProgress(position);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
