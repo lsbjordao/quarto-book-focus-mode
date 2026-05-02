@@ -353,18 +353,13 @@ document.addEventListener("DOMContentLoaded", function () {
     Promise.all([collectPrevious(currentPage), collectNext(currentPage)]).then(function () {
       var allPages = before.concat([currentPage], after);
 
-      // Website fallback: no link[rel] navigation — build page list from sidebar
+      // Website fallback: no link[rel] navigation — build page list from sidebar.
+      // Use count: 1 for every page so global progress is page-proportional and
+      // stays consistent across navigations (section counts vary per page and
+      // would cause the bar to jump backwards when moving between pages).
       if (!isBookFormat && allPages.length === 1) {
         var sidebarPages = buildSidebarPages();
-        if (sidebarPages.length > 1) {
-          for (var i = 0; i < sidebarPages.length; i++) {
-            if (sidebarPages[i].key === currentPage.key) {
-              sidebarPages[i].count = total;
-              break;
-            }
-          }
-          allPages = sidebarPages;
-        }
+        if (sidebarPages.length > 1) allPages = sidebarPages;
       }
 
       bookProgress.pages = allPages;
