@@ -222,6 +222,23 @@ document.addEventListener("DOMContentLoaded", function () {
     if (localStorage.getItem(presStorageKey) === "1") setPresentationMode(true);
   } catch (e) {}
 
+  if (presActive && window.location.hash) {
+    var targetId = window.location.hash.slice(1);
+    var targetEl = document.getElementById(targetId);
+    if (targetEl) {
+      var targetIdx = -1;
+      for (var si = 0; si < slides.length; si++) {
+        if (slides[si] === targetEl) { targetIdx = si; break; }
+      }
+      if (targetIdx < 0) {
+        for (var si = slides.length - 1; si >= 0; si--) {
+          if (slides[si].contains(targetEl)) { targetIdx = si; break; }
+        }
+      }
+      if (targetIdx >= 0) showSlide(targetIdx);
+    }
+  }
+
   document.addEventListener("keydown", function (e) {
     var tag = document.activeElement ? document.activeElement.tagName : "";
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" ||
