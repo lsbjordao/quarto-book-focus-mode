@@ -202,6 +202,36 @@ document.addEventListener("DOMContentLoaded", function () {
     currentPageStart: 0,
     totalPassages: 0
   };
+  var progressStorageKey = "quarto-book-presentation-progress";
+
+  function setProgressWidth(percent, animate) {
+    if (!progressBar) return;
+
+    percent = Math.max(0, Math.min(percent, 100));
+    if (animate === false) {
+      var previousTransition = progressBar.style.transition;
+      progressBar.style.transition = "none";
+      progressBar.style.width = percent + "%";
+      progressBar.offsetHeight;
+      progressBar.style.transition = previousTransition;
+    } else {
+      progressBar.style.width = percent + "%";
+    }
+  }
+
+  function saveProgressWidth(percent) {
+    try { localStorage.setItem(progressStorageKey, String(percent)); } catch (e) {}
+  }
+
+  function restoreProgressWidth() {
+    try {
+      if (localStorage.getItem("quarto-book-presentation-mode") !== "1") return;
+      var savedProgress = parseFloat(localStorage.getItem(progressStorageKey) || "");
+      if (!isNaN(savedProgress)) setProgressWidth(savedProgress, false);
+    } catch (e) {}
+  }
+
+  restoreProgressWidth();
 
   function finishBookProgressSetup() {
     bookProgress.totalPassages = 0;
@@ -279,12 +309,19 @@ document.addEventListener("DOMContentLoaded", function () {
     position = Math.max(1, Math.min(position, total));
 
     if (bookProgress.ready) {
-      var globalPosition = bookProgress.currentPageStart + position;
-      progressBar.style.width = (Math.min(globalPosition / bookProgress.totalPassages, 1) * 100) + "%";
+      var globalIndex = bookProgress.currentPageStart + position - 1;
+      var denominator = Math.max(bookProgress.totalPassages - 1, 1);
+      var percent = bookProgress.totalPassages === 1 ? 100 : (globalIndex / denominator) * 100;
+      setProgressWidth(percent, true);
+      saveProgressWidth(percent);
       return;
     }
 
-    progressBar.style.width = (Math.min(position / total, 1) * 100) + "%";
+    if (bookProgress.failed) {
+      var localDenominator = Math.max(total - 1, 1);
+      var localPercent = total === 1 ? 100 : ((position - 1) / localDenominator) * 100;
+      setProgressWidth(localPercent, true);
+    }
   }
 
   function clearPresClasses() {
