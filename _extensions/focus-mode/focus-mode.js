@@ -403,12 +403,31 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  /* ── TOC highlight sync for presentation mode ── */
+  function updateTocHighlight(sectionId) {
+    var toc = document.getElementById("TOC");
+    if (!toc) return;
+    var links = toc.querySelectorAll("a");
+    for (var i = 0; i < links.length; i++) {
+      links[i].classList.remove("active");
+    }
+    if (!sectionId) return;
+    for (var i = 0; i < links.length; i++) {
+      if (links[i].getAttribute("href") === "#" + sectionId) {
+        links[i].classList.add("active");
+        links[i].scrollIntoView({ block: "nearest", behavior: "smooth" });
+        break;
+      }
+    }
+  }
+
   function showPrelude() {
     clearPresClasses();
     currentIdx = -1;
     document.body.classList.add('pres-prelude');
     counter.textContent = "1 / " + total;
     updateProgress(1);
+    updateTocHighlight(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -432,6 +451,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var position = idx + 1 + offset;
     counter.textContent = position + " / " + total;
     updateProgress(position);
+    updateTocHighlight(section.id || null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -445,6 +465,9 @@ document.addEventListener("DOMContentLoaded", function () {
       if (hasPrelude) { showPrelude(); } else { showSlide(0); }
     } else {
       clearPresClasses();
+      updateTocHighlight(null);
+      // Re-trigger Quarto's scrollspy so TOC reverts to scroll-based highlight
+      window.dispatchEvent(new Event("scroll"));
     }
     try { localStorage.setItem(presStorageKey, enabled ? "1" : "0"); } catch (e) {}
   }
