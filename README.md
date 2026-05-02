@@ -2,7 +2,7 @@
 
 A lightweight Quarto extension that adds a floating **Focus Mode** toggle button to Quarto Book HTML outputs, plus a keyboard-driven **Presentation Mode** for navigating one section at a time.
 
-Compatible with **Quarto ≥ 1.4**.
+Compatible with **Quarto ≥ 1.4**. **Desktop only** — the extension is automatically disabled on mobile and tablet devices.
 
 ## Installation
 
@@ -91,6 +91,8 @@ Add this rule to your project stylesheet.
 
 ## Compatibility
 
-This extension is designed specifically for **Quarto Book HTML output**.
+This extension is designed specifically for **Quarto Book HTML output** on **desktop devices**.
 
-The button automatically hides itself on pages that do not use the Quarto Book sidebar structure.
+On mobile and tablet devices (touch screens, coarse pointer), all UI and keyboard shortcuts are automatically disabled. The extension detects the device type via the CSS media feature `(hover: hover) and (pointer: fine)`, which distinguishes mouse-driven desktops from touch-based devices.
+
+The button also automatically hides itself on desktop pages that do not use the Quarto Book sidebar structure.
