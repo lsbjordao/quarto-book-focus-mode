@@ -4,7 +4,7 @@ A lightweight Quarto extension that adds a floating **Focus Mode** toggle button
 
 Compatible with **Quarto ≥ 1.4**. **Desktop only** — the extension is automatically disabled on mobile and tablet devices.
 
-![Quarto Focus Mode infographic](https://raw.githubusercontent.com/lsbjordao/lsbjordao.github.io/8ef76e7f4aae2506806c8a2d37341d0da5f36dfb/posts/Quarto-focus-mode/image2.png)
+![Quarto Focus Mode infographic](./infographic.png)
 
 ## Installation
 
